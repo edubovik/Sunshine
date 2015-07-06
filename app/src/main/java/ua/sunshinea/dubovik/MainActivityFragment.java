@@ -7,6 +7,8 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 
 /**
@@ -20,19 +22,11 @@ public class MainActivityFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View rootView=inflater.inflate(R.layout.fragment_main, container, false);
+        View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
-        ArrayList<String> data=new ArrayList<>();
-        data.add("Sunny");
-        data.add("Snow");
-        data.add("Sunny");
-        data.add("Sunny");
-        data.add("Rain");
-        data.add("Sunny");
-        data.add("Sunny");
-        data.add("Cloudy");
+        String[] weather = {"Sunny", "Windy", "Cloudy", "Snow", "Rain"};
 
-
+        List<String> data = new ArrayList<String>(Arrays.asList(weather));
 
         return rootView;
     }
