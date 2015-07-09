@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="ua.sunshinea.dubovik" >
+    package="ua.sunshine.dubovik" >
 
     <uses-permission android:name="android.permission.INTERNET" />
 
@@ -24,7 +24,15 @@
             android:parentActivityName=".MainActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="ua.sunshinea.dubovik.MainActivity" />
+                android:value="ua.sunshine.dubovik.MainActivity" />
+        </activity>
+        <activity
+            android:name=".SettingsActivity"
+            android:label="@string/title_activity_settings"
+            android:parentActivityName=".MainActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="ua.sunshine.dubovik.MainActivity" />
         </activity>
     </application>
 

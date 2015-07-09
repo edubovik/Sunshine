@@ -1,4 +1,4 @@
-package ua.sunshinea.dubovik;
+package ua.sunshine.dubovik;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;

@@ -1,10 +1,13 @@
 package ua.sunshine.dubovik;
 
 import android.annotation.TargetApi;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.text.format.Time;
 import android.view.LayoutInflater;
@@ -16,7 +19,6 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -31,9 +33,6 @@ import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
-
-import ua.sunshinea.dubovik.R;
 
 
 /**
@@ -43,6 +42,7 @@ public class ForecastFragment extends Fragment {
     ArrayAdapter<String> adapter;
     ListView dataList;
 
+
     public ForecastFragment() {
     }
 
@@ -50,6 +50,7 @@ public class ForecastFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
+
     }
 
     @Override
@@ -61,10 +62,42 @@ public class ForecastFragment extends Fragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.action_refresh) {
-            new FetchWeatherTask().execute("94043");
+            updateWeather();
             return true;
+        } else if (id == R.id.action_settings) {
+            startActivity(new Intent(getActivity(), SettingsActivity.class));
+            return true;
+        } else if (id == R.id.action_location) {
+            openPreferredLocationInMap();
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void openPreferredLocationInMap() {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        String location = preferences.getString(getString(R.string.pref_location_key), getString(R.string.pref_location_default));
+        Uri geoLocation = Uri.parse("geo:0.0?").buildUpon().appendQueryParameter("q", location).build();
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setData(geoLocation);
+        if (intent.resolveActivity(getActivity().getPackageManager()) != null) {
+            startActivity(intent);
+        }
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        updateWeather();
+    }
+
+
+    private void updateWeather() {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        String location = preferences.getString(getString(R.string.pref_location_key),
+                getString(R.string.pref_location_default));
+        String units = preferences.getString(getString(R.string.pref_units_key), getString(R.string.pref_units_metric));
+        new FetchWeatherTask().execute(location, units);
+
     }
 
     @Override
@@ -72,22 +105,16 @@ public class ForecastFragment extends Fragment {
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
         dataList = (ListView) rootView.findViewById(R.id.listview_forecast);
-        String[] weather = {"Today - Sunny - 88/63",
-                "Tomorrow - Foggy -70/45",
-                "Weds - Cloudy - 72/63",
-                "Thurs - Rainy - 64/51",
-                "Fri - Foggy - 70/46",
-                "Sat - Sunny - 76/68"};
-
-        List<String> data = new ArrayList<String>(Arrays.asList(weather));
-        adapter = new ArrayAdapter<String>(getActivity(), R.layout.list_item_forecast, R.id.list_item_forecast_textview, data);
+        adapter = new ArrayAdapter<String>(getActivity(), R.layout.list_item_forecast, R.id.list_item_forecast_textview, new ArrayList<String>());
         dataList.setAdapter(adapter);
 
         dataList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 String text = adapter.getItem(position);
-                Toast.makeText(getActivity(),text, Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(getActivity(), DetailsActivity.class);
+                intent.putExtra(Intent.EXTRA_TEXT, text);
+                startActivity(intent);
             }
         });
         return rootView;
@@ -128,7 +155,7 @@ public class ForecastFragment extends Fragment {
                         .appendPath("daily")
                         .appendQueryParameter("q", params[0])
                         .appendQueryParameter("mode", "json")
-                        .appendQueryParameter("units", "metric")
+                        .appendQueryParameter("units", params[1])
                         .appendQueryParameter("cnt", "7");
 
                 URL url = new URL(builder.toString());
@@ -284,7 +311,7 @@ public class ForecastFragment extends Fragment {
             double low = temperatureObject.getDouble(OWM_MIN);
 
             highAndLow = formatHighLows(high, low);
-            resultStrs[i] = day + " - " + description + " - " + highAndLow;
+            resultStrs[i] = day + " - " + description + " - " + highAndLow+" ";
         }
 
         return resultStrs;
