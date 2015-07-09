@@ -1,4 +1,4 @@
-package ua.sunshinea.dubovik;
+package ua.sunshine.dubovik;
 
 import android.annotation.TargetApi;
 import android.net.Uri;
@@ -13,8 +13,10 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -30,6 +32,8 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import ua.sunshinea.dubovik.R;
 
 
 /**
@@ -79,7 +83,13 @@ public class ForecastFragment extends Fragment {
         adapter = new ArrayAdapter<String>(getActivity(), R.layout.list_item_forecast, R.id.list_item_forecast_textview, data);
         dataList.setAdapter(adapter);
 
-
+        dataList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                String text = adapter.getItem(position);
+                Toast.makeText(getActivity(),text, Toast.LENGTH_SHORT).show();
+            }
+        });
         return rootView;
     }
 

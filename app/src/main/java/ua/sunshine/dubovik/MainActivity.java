@@ -1,7 +1,9 @@
-package ua.sunshinea.dubovik;
+package ua.sunshine.dubovik;
 
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
+
+import ua.sunshinea.dubovik.R;
 
 
 public class MainActivity extends ActionBarActivity {
