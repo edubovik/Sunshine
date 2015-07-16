@@ -1,11 +1,8 @@
 package ua.sunshine.dubovik;
 
-import android.annotation.TargetApi;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
-import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
@@ -24,15 +21,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 
 /**
@@ -92,12 +82,11 @@ public class ForecastFragment extends Fragment {
 
 
     private void updateWeather() {
+        FetchWeatherTask weatherTask = new FetchWeatherTask(getActivity(), adapter);
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
         String location = preferences.getString(getString(R.string.pref_location_key),
                 getString(R.string.pref_location_default));
-        String units = preferences.getString(getString(R.string.pref_units_key), getString(R.string.pref_units_metric));
-        new FetchWeatherTask().execute(location, units);
-
+        weatherTask.execute(location);
     }
 
     @Override
@@ -126,102 +115,6 @@ public class ForecastFragment extends Fragment {
         return fragment;
     }
 
-    class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
-
-        @Override
-        protected String[] doInBackground(String... params) {
-
-            if (params.length == 0) {
-                return null;
-            }
-
-
-            HttpURLConnection urlConnection = null;
-            BufferedReader reader = null;
-            // Will contain the raw JSON response as a string.
-            String forecastJsonStr;
-            int numDays = 7;
-            try {
-                // Construct the URL for the OpenWeatherMap query
-                // Possible parameters are avaiable at OWM's forecast API page, at
-                // http://openweathermap.org/API#forecast
-
-                Uri.Builder builder = new Uri.Builder();
-                builder.scheme("http")
-                        .authority("api.openweathermap.org")
-                        .appendPath("data")
-                        .appendPath("2.5")
-                        .appendPath("forecast")
-                        .appendPath("daily")
-                        .appendQueryParameter("q", params[0])
-                        .appendQueryParameter("mode", "json")
-                        .appendQueryParameter("units", params[1])
-                        .appendQueryParameter("cnt", "7");
-
-                URL url = new URL(builder.toString());
-                // Create the request to OpenWeatherMap, and open the connection
-                urlConnection = (HttpURLConnection) url.openConnection();
-                urlConnection.setRequestMethod("GET");
-                urlConnection.connect();
-
-                // Read the input stream into a String
-                InputStream inputStream = urlConnection.getInputStream();
-                StringBuilder buffer = new StringBuilder();
-                if (inputStream == null) {
-                    // Nothing to do.
-                    return null;
-                }
-                reader = new BufferedReader(new InputStreamReader(inputStream));
-
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    // Since it's JSON, adding a newline isn't necessary (it won't affect parsing)
-                    // But it does make debugging a *lot* easier if you print out the completed
-                    // buffer for debugging.
-                    buffer.append(line + "\n");
-                }
-
-                if (buffer.length() == 0) {
-                    // Stream was empty.  No point in parsing.
-                    return null;
-                }
-                forecastJsonStr = buffer.toString();
-                if (!forecastJsonStr.isEmpty()) {
-
-                    return getWeatherDataFromJson(forecastJsonStr, numDays);
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-                // If the code didn't successfully get the weather data, there's no point in attemping
-                // to parse it.
-                return null;
-            } catch (JSONException e) {
-                e.printStackTrace();
-            } finally {
-                if (urlConnection != null) {
-                    urlConnection.disconnect();
-                }
-                if (reader != null) {
-                    try {
-                        reader.close();
-                    } catch (final IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-            return null;
-        }
-
-        @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-        @Override
-        protected void onPostExecute(String[] strings) {
-            if (strings != null) {
-                adapter.clear();
-                adapter.addAll(Arrays.asList(strings));
-                adapter.notifyDataSetChanged();
-            }
-        }
-    }
 
     /* The date/time conversion code is going to be moved outside the asynctask later,
          * so for convenience we're breaking it out into its own method now.
@@ -311,7 +204,7 @@ public class ForecastFragment extends Fragment {
             double low = temperatureObject.getDouble(OWM_MIN);
 
             highAndLow = formatHighLows(high, low);
-            resultStrs[i] = day + " - " + description + " - " + highAndLow+" ";
+            resultStrs[i] = day + " - " + description + " - " + highAndLow + " ";
         }
 
         return resultStrs;
