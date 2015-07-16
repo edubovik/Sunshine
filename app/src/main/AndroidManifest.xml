@@ -3,7 +3,10 @@
     package="ua.sunshine.dubovik">
 
     <uses-permission android:name="android.permission.INTERNET" />
-
+    <permission
+        android:name="ua.sunshine.LICENSE_TO_KILL"
+        android:label="Licenced to Kill"
+        android:protectionLevel="dangerous" />
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -37,7 +40,10 @@
 
         <provider
             android:name=".data.WeatherProvider"
-            android:authorities="ua.sunshine.dubovik.app" />
+            android:authorities="ua.sunshine.dubovik.app"
+            android:enabled="true"
+            android:exported="true"
+            android:permission="ua.sunshine.LICENSE_TO_KILL" />
     </application>
 
 </manifest>
