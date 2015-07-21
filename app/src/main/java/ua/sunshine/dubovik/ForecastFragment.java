@@ -23,9 +23,11 @@ import ua.sunshine.dubovik.data.WeatherContract;
  */
 public class ForecastFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
     private ForecastAdapter mForecastAdapter;
-
+    public static final String SELECTED_KEY = "list_position";
     private static final int FORECAST_LOADER = 0;
-
+    private int mPosition = ListView.INVALID_POSITION;
+    private boolean mUseTodayLayout;
+    private ListView dataList;
     private static final String[] FORECAST_COLUMNS = {
             WeatherContract.WeatherEntry.TABLE_NAME + "." + WeatherContract.WeatherEntry._ID,
             WeatherContract.WeatherEntry.COLUMN_DATE,
@@ -117,8 +119,8 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
 
         mForecastAdapter = new ForecastAdapter(getActivity(), cur, 0);
 
-        View rootView = inflater.inflate(R.layout.fragment_forecast, container, false);
-        final ListView dataList = (ListView) rootView.findViewById(R.id.listview_forecast);
+        View rootView = inflater.inflate(R.layout.fragment_main, container, false);
+        dataList = (ListView) rootView.findViewById(R.id.listview_forecast);
         dataList.setAdapter(mForecastAdapter);
         dataList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -132,11 +134,23 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
                             ));
 
                 }
+                mPosition = position;
             }
         });
+        if (savedInstanceState != null && savedInstanceState.containsKey(SELECTED_KEY)) {
+            mPosition = savedInstanceState.getInt(SELECTED_KEY, 0);
+        }
+        mForecastAdapter.setUseTodayLayout(mUseTodayLayout);
         return rootView;
     }
 
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        if (mPosition != ListView.INVALID_POSITION) {
+            outState.putInt(SELECTED_KEY, mPosition);
+        }
+        super.onSaveInstanceState(outState);
+    }
 
     void onLocationChanged() {
         updateWeather();
@@ -161,6 +175,9 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     @Override
     public void onLoadFinished(android.support.v4.content.Loader<Cursor> loader, Cursor data) {
         mForecastAdapter.swapCursor(data);
+        if (mPosition != ListView.INVALID_POSITION) {
+            dataList.setSelection(mPosition);
+        }
     }
 
     @Override
@@ -168,4 +185,11 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
         mForecastAdapter.swapCursor(null);
     }
 
+    public void setUseTodayLayout(boolean useTodayLayout) {
+        mUseTodayLayout = useTodayLayout;
+        if (mForecastAdapter != null) {
+            mForecastAdapter.setUseTodayLayout(mUseTodayLayout);
+        }
+    }
 }
+
